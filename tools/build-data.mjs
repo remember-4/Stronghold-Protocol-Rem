@@ -34,6 +34,8 @@ import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildMakoto } from './custom/makoto.mjs';
+import { pathToFileURL } from 'node:url';
 import { Grid, DEPLOY_REFUSED_TILES } from '../server/sim/grid.js';
 import { bandBondIds } from '../shared/bandBonds.js';
 
@@ -767,7 +769,7 @@ function branchTraitText(char, phase, level) {
  * ({id, modulePhase, moduleTokenParts} per non-default module + 'none') for the token variants.
  * @returns {{ chess: object, tokenOwners: Map<string, Array<{chessId:string, charId:string, phase:number, level:number, skillIndex:number, skillLevel:number, count:number|null, golden:boolean, modulePhase:any, skillAlts:object[], moduleAlts:object[]}>> }}
  */
-function buildChess(ctx) {
+export function buildChess(ctx) {
   const { act, charTable, uniequip, battleEquip } = ctx;
   const out = {};
   const tokenOwners = new Map();
@@ -1329,7 +1331,7 @@ function buildBonds(ctx, chess, effects) {
       if (x.key === 'bond_layer_char_garrison_bonus' && lb.layer > 0) layerMilestones.push({ layer: lb.layer, mode: 'reach', effect: x.key });
     }
 
-    const members = (b.chessIdList || []).filter((id) => chess[id] && !chess[id].isGolden).sort(naturalCmp);
+    const members = [...new Set([...(b.chessIdList || []), ...Object.values(chess).filter(c => c.bonds.includes(bondId)).map(c => c.chessId)])].filter((id) => chess[id] && !chess[id].isGolden).sort(naturalCmp);
     for (const id of b.chessIdList || []) if (!chess[id]) warn(`bond ${bondId}: member ${id} missing from chess`);
     const rb = researchBonds.get(bondId);
     const dp = textPair(b.desc);
@@ -3249,9 +3251,11 @@ async function main() {
   const ctx = await loadContext();
   log('building…');
   const { chess, tokenOwners } = buildChess(ctx);
+  const custom = buildMakoto(buildChess);
+  Object.assign(chess, custom.chess);
   const effects = buildEffects(ctx);
   const bonds = buildBonds(ctx, chess, effects);
-  const garrisons = buildGarrisons(ctx, chess);
+  const garrisons = { ...buildGarrisons(ctx, Object.fromEntries(Object.entries(chess).filter(([id]) => !custom.chess[id]))), ...custom.garrisons };
   const items = buildItems(ctx, effects);
   const bands = buildBands(ctx, effects);
   const enemies = buildEnemies(ctx);
@@ -3317,7 +3321,7 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main().catch((e) => {
   console.error('build-data failed:', e && e.stack ? e.stack : e);
   process.exitCode = 1;
 });

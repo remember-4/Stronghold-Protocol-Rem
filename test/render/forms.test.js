@@ -378,3 +378,16 @@ test('render/app.js hands the `form` of a sim fx (shared/protocol.js fxForm) wit
   assert.match(src, /if \(!\(late > 0\)\) fx\.simFx\(/);
   assert.match(src, /interp\.takeEvents\(renderT, EVS, renderT - 1\.5, LATE\);/);
 });
+
+test('Makoto: body and all four Persona clip sets exist in both shipped Spine models', () => {
+  const forms = FORMS.char_4217_makoto;
+  assert.deepEqual(Object.keys(forms).sort(), ['body', 'makoto_s1', 'makoto_s2', 'makoto_s3a', 'makoto_s3b']);
+  for (const [direction, model] of Object.entries(assets.chars.char_4217_makoto.spine)) {
+    for (const form of Object.values(forms)) {
+      for (const name of [form.change, form.leave, form.roles.idle, form.roles.die, form.roles.attack?.loop].filter(Boolean)) {
+        // Official Back model omits transitions/death and S3 Orpheus; the renderer uses its available-clip fallback.
+        if (direction === 'front' || /Idle|Attack/.test(name)) assert.ok(model.animations[name], `Makoto model has ${name}`);
+      }
+    }
+  }
+});

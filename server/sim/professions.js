@@ -146,6 +146,7 @@ const installDollkeeper = (battle, unit) => {
     unit.form = null;
     if (!unit.alive || !unit.deployed) return;
     startSwitch();
+    battle.emit('dollChanged', { unit, doll: false });
     unit.markDirty();
     unit.hp = unit.s.maxHp;
     battle.fx('swap', at({ form: null }));
@@ -164,10 +165,11 @@ const installDollkeeper = (battle, unit) => {
     });
     battle.releaseBlocked(unit);
     unit.form = 'doll';
+    // `dur`: until the switch back (the client times the 替身's closing clip with it)
+    battle.emit('dollChanged', { unit, doll: true });
     unit.markDirty();
     unit.hp = unit.s.maxHp;
-    // `dur`: until the switch back (the client times the 替身's closing clip with it)
-    battle.fx('substitute', at({ form: 'doll', dur }));
+    battle.fx('substitute', at({ form: unit.form, dur }));
     return true;
   };
   battle.on('fatal', (ctx) => {
