@@ -129,12 +129,18 @@ const DEFAULT_MELEE_RANGE = [[0, 0], [0, 1]];
  * preferred). Alone, a band that withholds the first rounds' funds (老鲤 "资金暂存": no operator in R1–R2, every enemy
  * leaks) is avoided — only 联防 teammates cover that. A band whose mechanic rides on a bond the mode switches off
  * (gd.bandBondIds ∩ gd.modeInactiveBonds — 标准: 潘格尼尼 <拉特兰>, 克莱门莎 <阿戈尔>, 玛恩纳 <卡西米尔>) weighs 0, never taken
- * (DESIGN §21.26); with every band excluded, the default band. One rng draw per call (deterministic per seed); modes
- * without inactive bonds keep exactly the earlier picks.
+ * (DESIGN §21.26); with every band excluded, the default band. Three humans + one AI prefer Touch while free;
+ * otherwise one weighted RNG draw per call (deterministic per seed).
  */
 export function botPickBand(m, ps) {
   const gd = m.gd;
   const ids = gd.bandIds();
+  // A three-human co-op party uses its one AI seat for the team-wide medic strategy.
+  // isBot counts actual AI seats; a human using autoplay / reconnect takeover stays a human.
+  const seats = Array.isArray(m.order) ? m.order : [];
+  const touch = 'band_amedic';
+  if (!m.isSolo && ps?.isBot && seats.length === 4 && seats.filter(p => p.isBot).length === 1
+      && ids.includes(touch) && !m.bandTaken?.(touch, ps.playerId)) return touch;
   if (!ids.length) return gd.defaultBandId;
   const lateFunds = (id) => /暂存/.test(String(gd.band(id)?.desc || ''));
   const offBond = (id) => gd.bandBondIds(id).some((b) => gd.modeInactiveBonds.has(b));
