@@ -35,6 +35,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildMakoto } from './custom/makoto.mjs';
+import { buildExtraOperators } from './custom/operators.mjs';
 import { pathToFileURL } from 'node:url';
 import { Grid, DEPLOY_REFUSED_TILES } from '../server/sim/grid.js';
 import { bandBondIds } from '../shared/bandBonds.js';
@@ -3252,6 +3253,7 @@ async function main() {
   log('building…');
   const { chess, tokenOwners } = buildChess(ctx);
   const custom = buildMakoto(buildChess);
+  Object.assign(custom.chess, buildExtraOperators(buildChess));
   Object.assign(chess, custom.chess);
   const effects = buildEffects(ctx);
   const bonds = buildBonds(ctx, chess, effects);

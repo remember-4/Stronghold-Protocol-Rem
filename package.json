@@ -33,7 +33,8 @@
     "setup": "node tools/setup.mjs",
     "doctor": "node tools/doctor.mjs",
     "launch": "node scripts/launch.mjs",
-    "assets:makoto": "node tools/fetch-makoto-assets.mjs"
+    "assets:makoto": "node tools/fetch-makoto-assets.mjs",
+    "assets:custom": "node tools/fetch-custom-assets.mjs"
   },
   "engines": {
     "node": ">=22"

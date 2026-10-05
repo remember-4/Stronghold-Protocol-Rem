@@ -319,7 +319,9 @@ test('audit: every selectable attack-range change attacks with the official grid
       assert.equal(u.s.baseRangeExtend, permExt, `${tag}: permanent 攻击距离`);
       // a skill grid takes the 攻击距离 unless it ignores it; the record's attack range already carries it (attackRangeGrid)
       const own = !!(s.rangeGrid && !ext);
-      const grid = own ? s.rangeGrid : attackRangeGrid(rec);
+      let grid = own ? s.rangeGrid : attackRangeGrid(rec);
+      // Angelina S3 explicitly adds all eight surrounding tiles to the official forward range.
+      if(s.skillId === 'skchr_aglna2_3') grid=[...grid,[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
       const want = keysOf(grid, u, own ? (NO_EXTEND.has(s.skillId) ? 0 : permExt) : ext);
       if (permExt) extended++;
       if (s.skillType !== 'PASSIVE' && !/被动效果：攻击范围扩大/.test(s.desc)) {

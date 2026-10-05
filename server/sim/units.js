@@ -182,6 +182,7 @@ export class Unit {
    * ba.levitate "变为空中单位"). Movement and pathing read `motion`, never this.
    */
   get isFlying() {
+    if (this.s.flags.groundbind) return false;
     if (this.motion === 'FLY') return true;
     if (this.side !== 'enemy') return false;
     const f = this.s.flags;
