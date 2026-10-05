@@ -23,7 +23,7 @@ export function makotoKit(bb, chess) {
         u.form = persona ? (s1 ? 'makoto_s1' : s2 ? 'makoto_s2' : persona === 'thanatos' ? 'makoto_s3a' : 'makoto_s3b') : null;
         u.profile = { ...bodyProfile };
         if (persona) {
-          b.addBuff(u, { key: 'makoto:persona', flags: { silence: true }, mods: { atkMul: 1 + t0.atk, hpMul: 1 + t0.max_hp_t1,
+          b.addBuff(u, { key: 'makoto:persona', flags: { silence: true }, mods: { atkMul: 1 + t0.atk, hpMul: (1 + t0.max_hp_t1) * (1 + (chess.trait.bb.max_hp ?? 0)),
             batPct: t0.base_attack_time / u.base.bat,
             aspd: !s1 && !s2 ? bb['talent@attack_speed'] : 0 } });
           u.profile.attack = 'ranged';

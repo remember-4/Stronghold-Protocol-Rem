@@ -35,6 +35,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildMakoto } from './custom/makoto.mjs';
+import { buildNarant } from './custom/narant.mjs';
 import { buildExtraOperators } from './custom/operators.mjs';
 import { pathToFileURL } from 'node:url';
 import { Grid, DEPLOY_REFUSED_TILES } from '../server/sim/grid.js';
@@ -3254,6 +3255,9 @@ async function main() {
   const { chess, tokenOwners } = buildChess(ctx);
   const custom = buildMakoto(buildChess);
   Object.assign(custom.chess, buildExtraOperators(buildChess));
+  const narant = buildNarant(buildChess);
+  Object.assign(custom.chess, narant.chess);
+  Object.assign(custom.garrisons, narant.garrisons);
   Object.assign(chess, custom.chess);
   const effects = buildEffects(ctx);
   const bonds = buildBonds(ctx, chess, effects);

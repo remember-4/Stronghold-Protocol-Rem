@@ -1,3 +1,4 @@
+import {customModules,defaultModule} from './modules.mjs';
 // Additional six-tier cards, pinned to the official data snapshot.
 import { readFileSync } from 'node:fs';
 export const EXTRA_OPERATORS = [
@@ -13,16 +14,16 @@ export function buildExtraOperators(buildChess) {
   EXTRA_OPERATORS.forEach(({charId,baseId,bondId,branch}, i) => {
     const goldenId = baseId.replace(/_a$/, '_b');
     act.charShopChessDatas[baseId] = { charId, chessLevel: 6, goldenChessId: goldenId,
-      chessType: 'NORMAL', shopLevelSortId: 25+i, defaultSkillIndex: 2 };
+      defaultUniEquipId:defaultModule(charId), chessType: 'NORMAL', shopLevelSortId: 25+i, defaultSkillIndex: 2 };
     subProfDict[official.charTable[charId].subProfessionId] = { subProfessionName: branch };
     for (const [id, gold] of [[baseId, false], [goldenId, true]]) {
       act.chessNormalIdLookupDict[id] = baseId;
       act.charChessDataDict[id] = { isGolden: gold, identifier: 10010+i*2+Number(gold),
         bondIds: [bondId], garrisonIds: [], upgradeNum: gold ? 0 : 3, upgradeChessId: gold ? null : goldenId,
-        status: { evolvePhase: 'PHASE_2', charLevel: gold ? 60 : 1, skillLevel: gold ? 7 : 4, equipLevel: 0 } };
+        status: { evolvePhase: 'PHASE_2', charLevel: gold ? 60 : 1, skillLevel: gold ? 7 : 4, equipLevel: gold && defaultModule(charId) ? 3 : 0 } };
     }
   });
-  const ctx = { ...official, act, ac: {}, uniequip: {subProfDict}, battleEquip: {}, research: {} };
+  const ctx = { ...official, act, ac: {}, uniequip: {...customModules.uniequip,subProfDict}, battleEquip: customModules.battleEquip, research: {} };
   const chess = buildChess(ctx).chess;
   // The S3 token is a client movement helper, not a placeable summon in this grid adaptation.
   for (const c of Object.values(chess)) if (c.charId === 'char_1015_aglna2') {

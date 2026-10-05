@@ -95,7 +95,11 @@ export function sakikoKit(bb,chess,def) {
     shoot=(type='phys',scale=1,priority=null)=>{
       if(!live(u))return;
       const list=foes(b,u);if(priority)list.sort((a,z)=>z.s[priority]-a.s[priority]);
-      const e=list[0],seq=u.deploySeq,amount=u.s.atk*scale;
+      const e=list[0],seq=u.deploySeq;
+      const skillShot=index===1||u.skill.active;
+      const moduleSkill=chess.module?.active&&skillShot;
+      const rangedMul=e&&!moduleSkill?(u.profile.dmgMul?.(b,u,e)??1):1;
+      const amount=u.s.atk*scale*rangedMul;
       const p=b.addProjectile({from:u,target:e,to:e?undefined:{x:u.x+u.fwd[1]*4,y:u.y+u.fwd[0]*4},
         speed:index===1&&u.mem.sakikoOrgan?2:4,visual:type==='arts'?'arts':'arrow',source:u,maxAge:5,
         onHit({target}){if(target&&live(u)&&u.deploySeq===seq)b.dealDamage(u,target,{amount,type,isAttack:true,isSkill:index===2&&u.skill.active,tags:['sakikoNote']});}});
@@ -125,6 +129,7 @@ export function sakikoKit(bb,chess,def) {
       if(f&&index===2&&!u.skill.active)u.skill.activate('fever',{free:true});
       if(f&&index===0&&b.time>=repeat){repeat=b.time+1;u.skill.activate('fever',{free:true});}
       if(index===0&&!f&&u.skill.charges===u.skill.maxCharges&&b.time>=u.skill.opReadyAt&&u.canAct&&!u.s.flags.silence)u.skill.activate('fullCharges');
+      if(chess.module?.active)b.addBuff(u,{key:'sakiko:moduleTempo',duration:.1,mods:{aspd:foes(b,u).length>=2?(def.traitBb?.attack_speed??12):0}});
       const notes=prune();b.addBuff(u,{key:'sakiko:notes',duration:.1,mods:{defIgnorePct:notes*(t0.def_penetrate_ratio??0),resIgnorePct:notes*(t0.magic_resist_penetrate_ratio??0)}});
       for(const a of b.alliesInGrid(u).filter(a=>a.kind==='op'))b.addBuff(a,{key:'sakiko:tempo',duration:.1,mods:{aspd:t1.attack_speed??0}});
       if(u.s.flags.stun||u.s.flags.disarm||u.s.flags.sleep||b.time<next)return;

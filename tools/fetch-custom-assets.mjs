@@ -8,7 +8,7 @@ import { Downloader } from './assets/downloader.mjs';
 import { collectLeaves, downloadLeaves, resolveTemplate, contentHash } from './assets/manifest.mjs';
 import { processModels } from './assets/spine.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
-const ids = ['char_4217_makoto', 'char_1015_aglna2', 'char_4182_oblvns'];
+const ids = ['char_4217_makoto', 'char_1015_aglna2', 'char_4182_oblvns', 'char_4138_narant'];
 const research = JSON.parse(await readFile(join(root, 'docs/research/07-assets.json'), 'utf8'));
 const plan = buildPlan({ assets07: { operators: Object.fromEntries(ids.map(id => [id, research.operators[id]])) }, ops03: {}, enemies05: {}, maps05: {}, audio: indexAudio({}), modelsData: {} });
 const template = { chars: plan.template.chars, skills: plan.template.skills, skillsById: plan.template.skillsById };

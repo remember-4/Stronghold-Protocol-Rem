@@ -163,7 +163,7 @@ export function performAttack(b, u, prof, targets, opts = null) {
     if (isHeal) { doHeal(b, u, prof, t); continue; }
     const info = { isSkill, index: i, attackId };
     if (ranged && t.side === 'enemy' && prof.projectile === 'boomerang') {
-      throwBoomerang(b, u, prof, t, info);
+      for(let n=0;n<Math.max(1,Math.floor(prof.boomerangCount??1));n++)throwBoomerang(b, u, prof, t, info);
     } else if (ranged && t.side === 'enemy') {
       const speed = PROJECTILE_SPEEDS[prof.projectile] ?? PROJECTILE_SPEED;
       // projectiles land even if the shooter died meanwhile (damage is credited to it)
@@ -197,7 +197,12 @@ function throwBoomerang(b, u, prof, t, info) {
       if (!home()) return;
       // hitDead: flies on to the thrower's last position even while it is hidden, caught there when it is still home
       b.addProjectile({ from: { x: c.x, y: c.y }, target: u, speed: BOOMERANG_RETURN_SPEED, visual: 'boomerangReturn', source: u, hitDead: true,
-        onHit: () => { if (home() && u.trait.boomerangsOut > 0) u.trait.boomerangsOut--; } });
+        onHit: () => {
+          if (home() && u.trait.boomerangsOut > 0) {
+            u.trait.boomerangsOut--;
+            if(prof.onBoomerangCatch)b._safe(()=>prof.onBoomerangCatch(b,u), 'boomerang.catch',u);
+          }
+        } });
     } });
 }
 

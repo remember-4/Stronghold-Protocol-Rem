@@ -19,6 +19,7 @@
 //   are resolved by Battle (getToken(id, owner.defId, owner.def.loadout)), not here.
 // registerAllMeta(registry) — calls each domain module's registerMeta(registry) (prep side, server boot).
 
+import {narantKit} from './kits/narant.js';
 import extra6 from './kits/extra6.js';
 import { makotoKit } from './kits/makoto.js';
 import { genericKit } from './generic.js';
@@ -41,7 +42,7 @@ const DOMAINS = await Promise.all(DOMAIN_NAMES.map((n) => safeImport(`./${n}.js`
 const tokens = DOMAINS[0];
 
 /** Merged kit registry: baseChessId → (bb, chess, def) => Kit */
-export const KITS = Object.freeze(Object.assign({ chess_char_5_makoto_a: makotoKit }, extra6, ...TIERS.map((m) => (m && m.default && typeof m.default === 'object' ? m.default : {}))));
+export const KITS = Object.freeze(Object.assign({ chess_char_5_makoto_a: makotoKit, chess_char_5_narant_a: narantKit }, extra6, ...TIERS.map((m) => (m && m.default && typeof m.default === 'object' ? m.default : {}))));
 
 /** Domain modules in install order: tokens, devices, enemies, bosses, bonds, garrisons, items, bands, choices. */
 export const MODULES = Object.freeze(DOMAIN_NAMES.map((n, i) => [n, DOMAINS[i]]));

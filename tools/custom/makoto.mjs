@@ -1,3 +1,4 @@
+import {customModules,defaultModule} from './modules.mjs';
 // Custom pool entry; official source snapshot is pinned so rebuilding is reproducible.
 import { readFileSync } from 'node:fs';
 export const MAKOTO_BASE = 'chess_char_5_makoto_a';
@@ -8,16 +9,16 @@ export function buildMakoto(buildChess) {
   } };
   const goldenId = MAKOTO_BASE.replace(/_a$/, '_b');
   act.charShopChessDatas[MAKOTO_BASE] = { charId: 'char_4217_makoto', chessLevel: 5, goldenChessId: goldenId,
-    chessType: 'NORMAL', shopLevelSortId: 24, defaultSkillIndex: 2 };
+    defaultUniEquipId:defaultModule('char_4217_makoto'), chessType: 'NORMAL', shopLevelSortId: 24, defaultSkillIndex: 2 };
   for (const [id, gold] of [[MAKOTO_BASE, false], [goldenId, true]]) {
     act.chessNormalIdLookupDict[id] = MAKOTO_BASE;
     act.charChessDataDict[id] = { isGolden: gold, identifier: gold ? 10002 : 10001,
       bondIds: ['lateranoShip', 'indomShip'], garrisonIds: [`garrison_makoto_${gold ? 'b' : 'a'}`],
       upgradeNum: gold ? 0 : 3, upgradeChessId: gold ? null : goldenId,
-      status: { evolvePhase: 'PHASE_2', charLevel: gold ? 60 : 1, skillLevel: gold ? 7 : 4, equipLevel: 0 } };
+      status: { evolvePhase: 'PHASE_2', charLevel: gold ? 60 : 1, skillLevel: gold ? 7 : 4, equipLevel: gold && defaultModule('char_4217_makoto') ? 3 : 0 } };
   }
-  const ctx = { ...official, act, ac: {}, uniequip: { subProfDict: { dollkeeper: { subProfessionName: '傀儡师' } } },
-    battleEquip: {}, research: {} };
+  const ctx = { ...official, act, ac: {}, uniequip: { ...customModules.uniequip, subProfDict: { dollkeeper: { subProfessionName: '傀儡师' } } },
+    battleEquip: customModules.battleEquip, research: {} };
   const { chess } = buildChess(ctx);
   const garrisons = {};
   for (const c of Object.values(chess)) {
