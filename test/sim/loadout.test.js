@@ -96,9 +96,9 @@ test('getChess(id, loadout): selected skill (bb, SP, trigger) and module (stats,
   const dm = d.getChess(MLYSS);
   const m3 = d.getChess(MLYSS, { moduleId: 'uniequip_003_mlyss' });
   const none = d.getChess(MLYSS, { moduleId: 'none' });
-  assert.equal(dm.stats.maxHp, 1893);
-  assert.equal(m3.stats.maxHp, g.statsBase.maxHp + 170);
-  assert.equal(m3.stats.atk, g.statsBase.atk + 28);
+  assert.equal(dm.stats.maxHp, 2082.3);
+  assert.equal(m3.stats.maxHp, g.statsBase.maxHp + 187);
+  assert.equal(m3.stats.atk, g.statsBase.atk + 30.8);
   assert.equal(none.stats.maxHp, g.statsBase.maxHp);
   assert.equal(m3.traitBb.atk_scale, 1.65, 'module trait upgrade');
   assert.deepEqual(none.traitBb, g.traitBase.bb);
@@ -202,8 +202,8 @@ test('BattleSpec: units carry skillIndex / moduleId (sanitised); a battle uses t
   assert.deepEqual(inside.skill.bb, C[INSIDE].skills[0].bb, 'with that skill\'s blackboard');
   assert.equal(inside.skill.baseSpCost, C[INSIDE].skills[0].spCost);
   const ml = b.allyUnits.find((x) => x.uid === 2);
-  assert.equal(ml.base.maxHp, C[MLYSS].statsBase.maxHp + 170, 'module attr applied to the elite\'s stats');
-  assert.equal(ml.base.atk, C[MLYSS].statsBase.atk + 28);
+  assert.equal(ml.base.maxHp, C[MLYSS].statsBase.maxHp + 187, 'module attr applied to the elite\'s stats');
+  assert.equal(ml.base.atk, C[MLYSS].statsBase.atk + 30.8);
   assert.equal(ml.skill.id, 'skchr_mlyss_1');
   const jf = b.allyUnits.find((x) => x.uid === 3);
   assert.equal(jf.skill.id, C.chess_char_1_02_a.skill.skillId, 'malformed loadout ⇒ default');
@@ -269,7 +269,7 @@ test('multi-player field: the same chess with different loadouts per player — 
   });
   const b = createBattleFromSpec(spec, freshDs(), { quiet: true });
   const of = (pid, uid) => b.allyUnits.find((u) => u.player.playerId === pid && u.uid === uid);
-  assert.deepEqual([of('p1', 1).skill.id, of('p1', 1).base.maxHp], ['skchr_mlyss_1', C[MLYSS].statsBase.maxHp + 170]);
+  assert.deepEqual([of('p1', 1).skill.id, of('p1', 1).base.maxHp], ['skchr_mlyss_1', C[MLYSS].statsBase.maxHp + 187]);
   assert.deepEqual([of('p2', 1).skill.id, of('p2', 1).base.maxHp], ['skchr_mlyss_3', C[MLYSS].stats.maxHp]);
   assert.equal(of('p1', 2).def.skill.id, 'sktok_mlyss_wtrman_1');
   assert.equal(of('p2', 2).def.skill.id, 'sktok_mlyss_wtrman_3');

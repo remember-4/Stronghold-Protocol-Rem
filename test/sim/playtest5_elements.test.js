@@ -1,3 +1,4 @@
+import { isEnemyBanned } from '../../shared/enemyBans.js';
 // test/sim/playtest5_elements.test.js — user playtest #5 report 3 (enemy side): "海嗣敌人元素损伤效率有点低 — check every
 // enemy's element damage and element gauge against the official game". Encodes the official numbers (enemy_database /
 // PRTS 元素 / 游戏数据基础 / the enemies' PRTS pages / gamedata_const termDescriptionDict) for the gauge pipeline
@@ -39,6 +40,7 @@ const SEA = Object.values(E).filter((e) => e.tags.includes('seamonster'));
 test('海嗣 enemies take element damage at the official rate: 损伤抵抗 0, gauge 1000 (leaders 2000), 元素抗性 0 on the burst', () => {
   assert.ok(SEA.length >= 10, `${SEA.length} 海嗣 enemies in data`);
   for (const rec of SEA) {
+    if (isEnemyBanned(rec.key)) continue;
     assert.equal(rec.stats.elementRes, 0, `${rec.name}: enemy_database epResistance (损伤抵抗) 0`);
     assert.equal(rec.stats.elementDmgRes, 0, `${rec.name}: epDamageResistance (元素抗性) 0`);
     const h = arena();
@@ -65,6 +67,7 @@ test('海嗣 element attackers deal ATK × the official ratio per hit (PRTS tale
     ['enemy_1521_dslily', 'neural', 'epdamage.attack@ep_damage_ratio', null],      // 盐风主教昆图斯 攻击力20%的神经损伤
   ];
   for (const [key, el, k, pos] of cases) {
+    if (isEnemyBanned(key)) continue;
     const h = arena({ units: [{ chessId: 't_wall', row: 9, col: 5 }] });
     h.step();
     const e = pos ? put(h, key, pos, { atkMul: 1.331 }) : h.spawn(key, { pos: [9, 7], routeIndex: 0, mods: { speedMul: 0, atkMul: 1.331 } });

@@ -248,7 +248,8 @@ test('6_03 余 S1 今日做东: taunt +1 while carried; TAKE_DAMAGE cast, HP/DEF
     approx(skillBuff(u).mods.hpPct, bb.max_hp);
     approx(skillBuff(u).mods.defPct, bb.def);
     const t0 = h.b.time;
-    h.run(4);
+    // Stay below the burn burst lock so every counter can still fill the gauge.
+    h.run(2);
     const burns = h.hooksOf('elementHit').filter((c) => c.source === u && c.dmg.element === 'burn' && c.t > t0 && (c.dmg.tags || []).includes('skill'));
     const taken = h.hooksOf('damaged').filter((c) => c.target === u && c.dmg?.isAttack && c.t > t0);
     assert.ok(burns.length >= 1 && burns.length === taken.length, `one burn per attack taken (${burns.length}/${taken.length})`);

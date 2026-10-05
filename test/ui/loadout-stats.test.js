@@ -83,13 +83,13 @@ const rangeTiles = (pv) => cardRangeGrid(null, pv.record, pv.chess).length;
 test('statsPreview: the 精锐 record under the chosen module (stats = base + the module\'s attr; 不装备 = the base stats), 普通 never has a module', () => {
   const { base, golden } = slot(INSIDE);
   const mod = golden.modules.find((m) => m.isDefault);
-  assert.deepEqual(mod.attr, { maxHp: 80, atk: 22 }, 'MAR-X');
+  assert.deepEqual(mod.attr, { maxHp: 88, atk: 24.2 }, 'MAR-X');
   const def = preview(INSIDE, 'elite');
   assert.equal(def.elite, true);
   assert.equal(def.chess, golden);
   assert.equal(def.record, golden, 'the default loadout is the data record itself (the card\'s rule)');
-  assert.equal(def.record.stats.maxHp, golden.statsBase.maxHp + 80);
-  assert.equal(def.record.stats.atk, golden.statsBase.atk + 22);
+  assert.equal(def.record.stats.maxHp, golden.statsBase.maxHp + 88);
+  assert.ok(Math.abs(def.record.stats.atk - golden.statsBase.atk - 24.2) < 1e-9);
   const none = preview(INSIDE, 'elite', { [INSIDE]: { module: 'none' } });
   assert.equal(none.record.stats.maxHp, golden.statsBase.maxHp, '不装备: the no-module stats');
   assert.equal(none.record.stats.atk, golden.statsBase.atk);

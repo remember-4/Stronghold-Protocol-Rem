@@ -26,6 +26,7 @@
 // battle continues. After MAX_INTERNAL_ERRORS the battle force-ends as a timeout.
 
 import { TICK, ROWS, COLS, BLOCK_RADIUS_SQ, DP_DEFAULTS, DOWN_STATE, FORCED_EXIT, MAX_BATTLE_TIME, MAX_INTERNAL_ERRORS, COLD_FREEZE_DURATION, OBSTACLE_DEVICES, EVENT_BUFFER_CAP, BOSS_ROW_OFFSET, MAX_HOOK_DEPTH, MAX_ALIVE_ENEMIES, LEVITATE_HALF_WEIGHT, RESIST_DEFAULT, RESIST_PALSY_DECAY, PUSH_TILES, PUSH_TILES_EFFECT, PULL_WEAK_SHARE, PULL_CRAWL, PULL_ORIGIN, PULL_STOP_RADIUS, PUSH_DIRECTIONAL_MIN_DIST, AUTO_OP_COOLDOWN, STEALTH_RESTORE } from './constants.js';
+import { isEnemyBanned } from '../../shared/enemyBans.js';
 import { GEO, layerGainRoom } from '../../shared/constants.js';
 import { createRng } from './rng.js';
 import { Grid } from './grid.js';
@@ -705,6 +706,7 @@ export class Battle {
   // spawns
 
   _queueSpawn(s, precount) {
+    if (isEnemyBanned(s.enemyKey) || isEnemyBanned(this.data.getEnemy(s.enemyKey)?.key)) return;
     if (Number(s.time) === Infinity) return; // "never" — not scheduled, not counted
     // capped: a bogus count (Infinity, 1e9) would otherwise hang the constructor / exhaust memory
     const count = Math.min(MAX_ALIVE_ENEMIES, Math.max(1, Math.floor(fin(s.count ?? 1, 1)) || 1));
@@ -762,6 +764,7 @@ export class Battle {
    * sourcePlayerId, ownerPlayerId, bounty:{coins,ownerPlayerId}, countInTotal }
    */
   spawnEnemy(enemyKey, opts = {}) {
+    if (isEnemyBanned(enemyKey) || isEnemyBanned(opts.def?.key)) return null;
     if (this.enemies.length >= MAX_ALIVE_ENEMIES && this.aliveEnemies().length >= MAX_ALIVE_ENEMIES) {
       this._handlerError('spawnEnemy', null, new Error(`more than ${MAX_ALIVE_ENEMIES} living enemies; spawn of ${enemyKey} refused`));
       return null;
@@ -772,6 +775,7 @@ export class Battle {
       try { def = opts.def.type === 'enemy' && opts.def.immune instanceof Set ? opts.def : normalizeEnemy(enemyKey, opts.def); } catch (e) { this._handlerError('spawnEnemy.def', null, e); }
     }
     if (!def) def = this.data.getEnemy(enemyKey);
+    if (isEnemyBanned(def?.key)) return null;
     if (!def) { this.log(`unknown enemy ${enemyKey}`); def = { ...FALLBACK_ENEMY, id: enemyKey, key: enemyKey }; }
     const ov = this.enemyOverrides[def.key] ?? this.enemyOverrides[enemyKey];
     if (ov && ov.stats) {

@@ -35,6 +35,7 @@
 // `lazerd` (else action 0); owner k starts 0.5·k s after the action, units step min(max(W/M, 0.05·W), 5 s) with M the
 // largest owner group (client `_CalculateActionPredelayConsiderUid`, decoded).
 
+import { isEnemyBanned } from '../../shared/enemyBans.js';
 import { createRng, deriveSeed } from '../sim/rng.js';
 
 const ACLOON = 'enemy_9012_acloon';
@@ -137,14 +138,14 @@ function entryList(gd) {
  */
 export function pickRoundEntry(gd, rng, type, round) {
   const half = round <= firstHalfMax(gd);
-  const ok = (e) => e.type === type && !!e.firstHalf === half && e.key !== ACLOON && !!gd.enemy(e.key) && !gd.inactiveEnemies.has(e.key);
+  const ok = (e) => e.type === type && !!e.firstHalf === half && e.key !== ACLOON && !isEnemyBanned(e.key) && !!gd.enemy(e.key) && !gd.inactiveEnemies.has(e.key);
   let cands = entryList(gd).filter(ok);
   if (!cands.length && type !== 'SPECIAL') return pickRoundEntry(gd, rng, 'SPECIAL', round);
   if (!cands.length) return null;
   const idx = weightedPick(rng, cands.map((e, i) => [i, e.weight ?? 1]));
   const e = cands[Number(idx) || 0];
   const pickKey = (list) => {
-    const keys = (Array.isArray(list) ? list : []).map((x) => (typeof x === 'string' ? x : x && x.key)).filter((k) => typeof k === 'string' && gd.enemy(k) && k !== ACLOON);
+    const keys = (Array.isArray(list) ? list : []).map((x) => (typeof x === 'string' ? x : x && x.key)).filter((k) => typeof k === 'string' && gd.enemy(k) && k !== ACLOON && !isEnemyBanned(k));
     return keys.length ? keys[Math.floor(rng() * keys.length)] : null;
   };
   return { round, type: e.type, key: e.key, normal: pickKey(e.N), elite: pickKey(e.E), fly: typeof e.fly === 'boolean' ? e.fly : isFlyKey(gd, e.key), firstHalf: half };
@@ -317,7 +318,7 @@ function templateSpawns(gd, tpl, round, pick) {
         key = newKey;
       }
     }
-    if (!gd.enemy(key)) continue;
+    if (!gd.enemy(key) || isEnemyBanned(key)) continue;
     const slot = s.slot || classOf(gd, key);
     const spec = {
       time,
@@ -483,7 +484,7 @@ function bountyPlan(gd, round, wave, bounties, playerId, side) {
   const groups = new Map(); // host action index → { host, items: [{ b, c, fly, count }] }
   for (const b of bounties || []) {
     const c = b && b.card ? b.card : {};
-    if (!gd.enemy(c.enemyKey)) continue;
+    if (!gd.enemy(c.enemyKey) || isEnemyBanned(c.enemyKey)) continue;
     const fly = isFlyKey(gd, c.enemyKey);
     const host = hostAction(gd, wave, { fly });
     const key = host ? host.index : -1;
@@ -570,7 +571,7 @@ export function previewOf(spawns) {
   const out = [];
   let seq = 0;
   for (const s of spawns || []) {
-    if (!s || typeof s.enemyKey !== 'string' || s.tag === 'part') continue;
+    if (!s || typeof s.enemyKey !== 'string' || s.tag === 'part' || isEnemyBanned(s.enemyKey)) continue;
     const tag = s.tag === 'boss' ? 'boss' : s.tag === 'bounty' ? 'bounty' : null;
     const pv = s.preview && typeof s.preview === 'object' ? s.preview : {};
     out.push({
@@ -621,7 +622,7 @@ export function buildUniteWave(gd, leaked, helperCount, timeLimit) { // eslint-d
   const groups = new Map(); // host action index → Map(owner → leaks), insertion order
   const flyOf = new Map();
   for (const l of leaked || []) {
-    if (!l || !gd.enemy(l.enemyKey)) continue;
+    if (!l || !gd.enemy(l.enemyKey) || isEnemyBanned(l.enemyKey)) continue;
     const fly = isFlyKey(gd, l.enemyKey);
     const token = l.isToken === true || gd.enemy(l.enemyKey).tokenOnly === true;
     const idx = hostIndex(fly, token);

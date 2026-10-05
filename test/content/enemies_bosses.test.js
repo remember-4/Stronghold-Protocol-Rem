@@ -1,3 +1,4 @@
+import { isEnemyBanned } from '../../shared/enemyBans.js';
 // test/content/enemies_bosses.test.js — enemy special types / abilities (content/enemies.js) and scripted leaders
 // (content/bosses.js). Every authored enemy / leader / part has at least one real battle asserting its signature effect.
 // Battles run with content 'generic' (no domain modules) + extraContent [enemies, bosses] so other content modules never
@@ -72,6 +73,7 @@ test('沉默: exactly the abilities whose handbook line is SILENCE-flagged can b
   const h = arena();
   h.step();
   for (const key of [...Object.keys(KITS), ...Object.keys(BOSS_KITS)]) {
+    if (isEnemyBanned(key)) continue;
     const e = put(h, key, [10, 7]);
     const data = E[key].abilities.some((a) => a.format === 'SILENCE');
     const kit = !!(e.mem.ab && e.mem.ab.list.some((a) => a && (a.sil || a.silAware)));
@@ -530,7 +532,7 @@ test(`${nm('enemy_10067_ftsjc')} + ${nm('enemy_10065_ftzlc')}: ATK ramps until t
 // DOT 持续
 
 for (const key of ['enemy_1234_dsubrl', 'enemy_1234_dsubrl_2']) {
-  test(`${nm(key)}: pulses hit every ally in range with neural damage; 抵抗 halves stun; immune to 停顿`, () => {
+  test(`${nm(key)}: pulses hit every ally in range with neural damage; 抵抗 halves stun; immune to 停顿`, { skip: key === 'enemy_1234_dsubrl' ? '深溟巢涌者已禁用；生成拦截由 enemy-ban.test.js 验证' : false }, () => {
     const h = arena({ units: [{ chessId: 't_wall', row: 10, col: 6 }, { chessId: 't_wall2', row: 10, col: 8 }] });
     h.step();
     const e = put(h, key, [10, 7]);

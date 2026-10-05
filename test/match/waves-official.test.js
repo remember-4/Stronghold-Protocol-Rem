@@ -1,3 +1,4 @@
+import { isEnemyBanned } from '../../shared/enemyBans.js';
 // Official enemy counts (research 08 §2 / §7-1): the client's RandomEnemyGenerater reproduced exactly — fixtures from
 // the official PRTS screenshots and from the research script over every special entry × round.
 import { test } from 'node:test';
@@ -56,7 +57,8 @@ test('every special entry × round matches the official per-action composition (
     for (const [r, want] of Object.entries(rounds)) {
       const w = waveOf(gd, `enemy_${short}`, Number(r));
       const got = w.spawns.map((s) => `${s.actionIndex}:${s.enemyKey.replace('enemy_', '')}:${s.count}:${s.preview.gate === 'upper' ? 'U' : 'L'}`).join(' ');
-      assert.equal(got, want, `${short} R${r}`);
+      const allowed = want.split(' ').filter(x => !isEnemyBanned(`enemy_${x.split(':')[1]}`)).join(' ');
+      assert.equal(got, allowed, `${short} R${r} (excluding disabled enemies)`);
       n++;
     }
   }
@@ -66,7 +68,7 @@ test('every special entry × round matches the official per-action composition (
 test('同盟 险境 R3 never exceeds 10 enemies per board (official 6–10; ours used to reach 68)', () => {
   const gd = new GameData(DATA, 'mode_multi_normal');
   for (const e of Object.values(DATA.factions.entries)) {
-    if (!e.firstHalf || gd.inactiveEnemies.has(e.key)) continue;
+    if (!e.firstHalf || gd.inactiveEnemies.has(e.key) || isEnemyBanned(e.key)) continue;
     const total = waveOf(gd, e.key, 3).spawns.reduce((s, x) => s + x.count, 0);
     assert.ok(total >= 6 && total <= 10, `${e.key}: R3 ${total}`);
   }

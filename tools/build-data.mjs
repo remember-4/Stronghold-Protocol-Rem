@@ -35,6 +35,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildMakoto } from './custom/makoto.mjs';
+import { applyOwnedBonus } from './custom/owned-bonus.mjs';
 import { buildNarant } from './custom/narant.mjs';
 import { buildExtraOperators } from './custom/operators.mjs';
 import { pathToFileURL } from 'node:url';
@@ -1002,7 +1003,7 @@ export function buildChess(ctx) {
       skillIcon: rec.skill?.iconId || null,
       subProfIcon: `sub_${char.subProfessionId}_icon`,
     };
-    out[chessId] = rec;
+    out[chessId] = applyOwnedBonus(rec);
   }
 
   // Integrity: golden ids resolve both ways.

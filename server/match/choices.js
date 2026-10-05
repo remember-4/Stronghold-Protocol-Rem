@@ -1,3 +1,4 @@
+import { isEnemyBanned } from '../../shared/enemyBans.js';
 // server/match/choices.js — 机变 (SP draft) card generation and application (DESIGN §6.1, research 01 A4,
 // data/choices.json).
 //
@@ -186,7 +187,7 @@ export function cardTargetBonds(gd, effectId) {
  * without one — test fixtures — fits every kind).
  */
 export function draftBounty(c, kind = null) {
-  if (!c) return false;
+  if (!c || isEnemyBanned(c.enemyKey)) return false;
   if (kind != null && typeof c.draftPool === 'string' && c.draftPool !== kind) return false;
   if (typeof c.draft === 'boolean') return c.draft;
   return c.payout !== 'perfect';

@@ -122,8 +122,8 @@ test('chess: every non-DIY chess has stats, range, classification and a resolvab
     if (c.isGolden) assert.equal(c.module ? c.module.active || c.module.id === null : true, true);
   }
   // Spot checks against official numbers (隐现 E1 Lv55: HP 1123, ATK 399).
-  assert.equal(chess.chess_char_1_01_a.stats.maxHp, 1123);
-  assert.equal(chess.chess_char_1_01_a.stats.atk, 399);
+  assert.equal(chess.chess_char_1_01_a.stats.maxHp, 1235.3);
+  assert.equal(chess.chess_char_1_01_a.stats.atk, 438.9);
   assert.equal(chess.chess_char_1_01_a.targetPriority, 'fly');
 });
 
@@ -547,8 +547,8 @@ test('chess: golden modules[] (+ statsBase/traitBase/talentsBase) compose back t
   // 缪尔赛思 精锐 (E2 60, module Lv3): 梳妆流形 (default) / 落叶四季
   const m = chess.chess_char_6_11_b;
   assert.deepEqual(m.modules.map((x) => [x.uniEquipId, x.typeName, x.isDefault]), [['uniequip_002_mlyss', 'TAC-X', true], ['uniequip_003_mlyss', 'TAC-Y', false]]);
-  assert.deepEqual(m.modules[1].attr, { maxHp: 170, atk: 28, def: 28 });
-  assert.deepEqual([m.statsBase.maxHp, m.statsBase.atk, m.statsBase.def], [1703, 467, 111]);
+  assert.deepEqual(m.modules[1].attr, { maxHp: 187, atk: 30.8, def: 30.8 });
+  assert.deepEqual([m.statsBase.maxHp, m.statsBase.atk, m.statsBase.def], [1873.3, 513.7, 122.1]);
   // module-less goldens: no choices, base = stats
   assert.deepEqual(chess.chess_char_5_14_b.modules, []);
   assert.deepEqual(chess.chess_char_5_14_b.statsBase, chess.chess_char_5_14_b.stats);
@@ -643,8 +643,8 @@ test('stages: player-facing names are clean Chinese "战场#NN…" labels (no re
   assert.equal(stages.act2autochess_m01.name, '战场#05(下半) 源石流发生装置');
 });
 
-test('official spot checks (hard-coded values from the zh_CN client data)', () => {
-  const st = (id) => { const s = chess[id].stats; return [s.maxHp, s.atk, s.def, s.res, s.blockCnt, s.cost]; };
+test('official spot checks (client numbers before the default ownership bonus)', () => {
+  const st = (id) => { const s = chess[id].stats; return [s.maxHp, s.atk, s.def].map(v=>Math.round(v/1.1*1e6)/1e6).concat([s.res, s.blockCnt, s.cost]); };
   assert.deepEqual(st('chess_char_6_11_b'), [1893, 492, 141, 0, 1, 15]);      // 缪尔赛思 精锐 (E2 60 + module Lv3)
   assert.deepEqual(st('chess_char_6_17_b'), [3593, 1108, 279, 0, 1, 19]);     // 耀骑士临光 精锐
   assert.deepEqual(st('chess_char_3_08_a'), [1594, 629, 170, 15, 1, 25]);     // 薄绿 (E2 1)
@@ -686,6 +686,7 @@ test('independent re-derivation of every chess and enemy stat from the raw offic
       const mp = BE[shop.defaultUniEquipId]?.phases.find((p) => p.equipLevel === cd.status.equipLevel);
       for (const b of mp?.attributeBlackboard || []) if (map[b.key]) exp[map[b.key]] += b.value;
     }
+    for(const key of ['maxHp','atk','def'])exp[key]*=1.1;
     for (const [key, v] of Object.entries(exp)) assert.ok(Math.abs(v - c.stats[key]) <= 0.5 + 1e-9, `${id} ${c.name}: ${key} ${c.stats[key]} vs official ${v}`);
     const lv = ST[CT[shop.charId].skills[shop.defaultSkillIndex].skillId].levels[cd.status.skillLevel - 1];
     for (const e of lv.blackboard) if (!(e.valueStr && e.value === 0)) assert.ok(Math.abs(c.skill.bb[e.key] - e.value) < 1e-6, `${id}: skill bb ${e.key}`);
@@ -705,7 +706,7 @@ test('independent re-derivation of every chess and enemy stat from the raw offic
       for (const b of mp.attributeBlackboard) exp[map[b.key] ?? b.key] = (exp[map[b.key] ?? b.key] || 0) + b.value;
       for (const [k, v] of Object.entries(exp)) {
         const f = { respawn_time: 'respawnTime', base_attack_time: 'bat', max_deploy_count: 'deployLimit', max_deck_stack_cnt: 'deckStack' }[k] ?? k;
-        assert.ok(Math.abs(m.attr[f] - v) < 1e-6, `${id} ${m.uniEquipId}: attr ${k} ${m.attr[f]} vs official ${v}`);
+        assert.ok(Math.abs(m.attr[f] - v*(['maxHp','atk','def'].includes(f)?1.1:1)) < 1e-6, `${id} ${m.uniEquipId}: attr ${k} ${m.attr[f]} vs official ${v}`);
       }
     }
     n++;
