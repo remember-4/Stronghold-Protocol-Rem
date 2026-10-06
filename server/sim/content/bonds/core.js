@@ -37,6 +37,7 @@
 
 import * as S from '../support/index.js';
 import { mitigate } from '../../damage.js';
+import { FORCED_EXIT } from '../../constants.js';
 import { spawnYanyou } from '../tokens.js';
 import { kjeragColdWind } from '../devices.js';
 import * as items from '../items.js';
@@ -424,7 +425,10 @@ function installEgir(battle, pid, bb, members) {
   const st = { knocked: new Set(), revives: 0 };
   battle.on('death', (c) => {
     const u = c.unit;
-    if (c.reason !== 'killed' || !memberSet.has(u) || st.knocked.has(u)) return;
+    // A helper entering 联防 already knocked out gets this field's Egir revive before waiting on redeploy.
+    // Keep forcedExit as a non-kill: this exception must not fire other 被击倒 traits / 不屈.
+    const carriedDown = battle.kind === 'unite' && c.reason === FORCED_EXIT && u?.carry?.down === true;
+    if ((c.reason !== 'killed' && !carriedDown) || !memberSet.has(u) || st.knocked.has(u)) return;
     st.knocked.add(u);
     if (st.revives >= max || u.alive || u.removed) return;
     if (!battle.redeploy(u, { free: true })) return;

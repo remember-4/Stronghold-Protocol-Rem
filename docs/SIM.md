@@ -89,7 +89,7 @@ where it fell for the `kill` / `death` handlers. "倒地干员所在地块视为
 tile and `isReservedTile` reports it, so every automatic picker skips it. The rule covers every 退场 (GitHub #60): an
 operator forced out by its own effects (`retreat` reason `'retreat'`: 史尔特尔's 余烬, 耀骑士临光 S2, 骑士戒律 + 竞技旗,
 伊内丝 S3; `'merchant'`: a 商人 that cannot pay) lies down and comes back the same way — still no kill (its death reason is
-not `'killed'`: no 被击倒 effects, 不屈, 阿戈尔 or knock-down count); only the 突袭 retreat (`'raid'`, redeployed at once on
+not `'killed'`: no 被击倒 effects, 不屈 or knock-down count; 阿戈尔 5 and 埃芒加德 specially revive carried-down operators when entering 联防 (阿戈尔 first)); only the 突袭 retreat (`'raid'`, redeployed at once on
 its landing tile) and permanent removals leave nothing.
 
 ### 1.1 Coordinates (PlayerBattleInput units)

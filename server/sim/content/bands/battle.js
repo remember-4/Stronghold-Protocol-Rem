@@ -39,6 +39,7 @@ import {
 } from '../support/index.js';
 import { weaknessRetype, addShieldLayer, PRIO_REVIVE, revivedInPlace } from '../items/battle.js';
 import { spawnMapChar } from '../tokens.js';
+import { FORCED_EXIT } from '../../constants.js';
 
 export const AMEDIC_BAND = 'band_amedic';
 /** 'fatal' priority of 埃芒加德: after the operators' own items (PRIO_REVIVE / PRIO_RESPAWN) and every talent / skill saver. */
@@ -75,6 +76,16 @@ const BY_KEY = {
       c.prevented = true;
       u.hp = u.s.maxHp;
       revivedInPlace(u); // in place for PRTS's 0-time / 0-cost redeploy: a new deployment for 坚固维式重锤's lock (items)
+      fxOn(battle, 'revive', u, keyOf(bandId), bandId, { left: max - used });
+    }, { priority: PRIO_BAND_REVIVE });
+    // 联防 inherits down state without taking damage, so it never emits fatal. Restore such operators here,
+    // after 阿戈尔's priority-11 revive, sharing the band's three charges with ordinary fatal saves.
+    battle.on('death', (c) => {
+      const u = c.unit;
+      if (battle.kind !== 'unite' || c.reason !== FORCED_EXIT || u?.carry?.down !== true
+          || used >= max || !isOp(u) || u.ownerId !== ps.playerId || u.alive || u.removed) return;
+      if (!battle.redeploy(u, { free: true })) return;
+      used++;
       fxOn(battle, 'revive', u, keyOf(bandId), bandId, { left: max - used });
     }, { priority: PRIO_BAND_REVIVE });
   },
