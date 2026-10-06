@@ -94,7 +94,7 @@ test('#1 players\' scenario: 普罗旺斯 + 德克萨斯 deployed, refresh, buy 
   m.dispose();
 });
 
-test('#1 each copy counts its own refreshes: a bench copy (整备区时也有效) bought later fires on its own first refresh; an elite keeps "already fired"', () => {
+test('#1 each copy counts its own refreshes: a bench copy (整备区时也有效) bought later fires on its own first refresh; a newly merged elite fires again', () => {
   const s = setup();
   const { m, ps } = s;
   s.activate();
@@ -107,18 +107,19 @@ test('#1 each copy counts its own refreshes: a bench copy (整备区时也有效
   assert.equal(s.L(), 8, 'copy B: its first refresh (A already fired this round)');
   s.refresh();
   assert.equal(s.L(), 8, 'nothing more this round');
-  // the third copy completes the elite: A and B already fired this round, so the elite does not fire again this round
-  // [ASSUMED: conservative — the elite keeps the highest refresh count of its copies]
+  // Promotion acquires the elite: her next manual refresh grants +8 anew.
   const elite = s.buy(LAP);
   assert.equal(elite.id, LAP_B, 'merged into the elite');
   assert.ok(!ps.find(a.uid) && !ps.find(b.uid), 'copies consumed');
   s.refresh();
-  assert.equal(s.L(), 8, 'the elite made this round from copies that already fired: no second trigger');
+  assert.equal(s.L(), 16, 'the newly merged elite grants +8 even after her normal copies fired');
+  s.refresh();
+  assert.equal(s.L(), 16, 'the elite fires only once after acquisition this round');
   s.h.toPrep(2);
   ps.funds = 50;
   s.activate();
   s.refresh();
-  assert.equal(s.L(), 8 + 8, 'R2: the elite fires +8 on the round\'s first refresh');
+  assert.equal(s.L(), 24, 'R2: the elite fires +8 on the round\'s first refresh');
   checkInvariants(m);
   m.dispose();
 });
@@ -144,6 +145,34 @@ test('#1 an elite merged from copies that had not fired yet this round fires on 
   assert.equal(s.L(), 12);
   checkInvariants(m);
   m.dispose();
+});
+
+test('#1 free manual refreshes grant +4/+8, spend no funds, and share the first-refresh limit with paid ones', () => {
+  for (const [id, layer] of [[LAP, 4], [LAP_B, 8]]) for (const freeFirst of [false, true]) {
+    const s = setup(); s.activate(); give(s.m, s.ps, id, 'hand');
+    try {
+      if (!freeFirst) s.refresh();
+      const beforeFunds = s.ps.funds;
+      s.ps.shop.freeRefreshes = 1; s.refresh();
+      assert.equal(s.ps.funds, beforeFunds, 'free refresh costs zero');
+      assert.equal(s.ps.shop.freeRefreshes, 0);
+      assert.equal(s.L(), layer, 'paid and free refresh share one trigger per acquisition');
+      s.refresh(); assert.equal(s.L(), layer, 'no repeat on a subsequent paid refresh');
+    } finally { s.m.dispose(); }
+  }
+});
+
+test('#1 free refresh after acquiring the elite re-triggers +8 after paid normal triggers in the same round', () => {
+  const s = setup(); s.activate();
+  try {
+    give(s.m, s.ps, LAP, 'hand'); give(s.m, s.ps, LAP, 'hand');
+    s.refresh(); assert.equal(s.L(), 8, 'two normal copies grant +4 each');
+    const elite = s.buy(LAP); assert.equal(elite.id, LAP_B);
+    s.ps.funds = 0; s.ps.shop.freeRefreshes = 1;
+    s.refresh(); assert.equal(s.L(), 16, 'free refresh after promotion grants +8');
+    assert.equal(s.ps.funds, 0);
+    s.ps.shop.freeRefreshes = 1; s.refresh(); assert.equal(s.L(), 16, 'no repeat');
+  } finally { s.m.dispose(); }
 });
 
 test('#1 only manual refreshes count: a re-triggered "刷新时" trait (ctx.triggerGarrisons) neither fires nor uses up her first refresh', () => {
